@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+cd /app
+
+python manage.py migrate
+python manage.py collectstatic --noinput
+
+# Local: uvicorn. Production later can swap this for gunicorn + uvicorn workers.
+exec uvicorn config.asgi:application --host 0.0.0.0 --port 8082 --reload

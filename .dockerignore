@@ -1,0 +1,16 @@
+.git
+.idea
+.venv
+venv
+frontend
+docs
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+*.pyc
+.env
+.env.*
+!.env.example
+htmlcov
+.coverage
+*.egg-info

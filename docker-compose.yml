@@ -1,0 +1,84 @@
+volumes:
+  local_postgres_data: {}
+
+# Shared Docker network (literal name on the host: nirvana_local).
+# Sibling compose projects can attach with:
+#   networks:
+#     nirvana_local:
+#       name: nirvana_local
+#       external: true
+networks:
+  nirvana_local:
+    name: nirvana_local
+    driver: bridge
+
+# Corp TLS bundle for image builds (uv and npm both hit intercepted TLS).
+# Requires /etc/corp-ca shared in Docker Desktop's file sharing settings.
+secrets:
+  ca_bundle:
+    file: ${CORP_CA_BUNDLE:-/etc/corp-ca/ca-bundle.pem}
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+      secrets:
+        - ca_bundle
+    image: openmermaid_backend
+    container_name: openmermaid_backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.local
+      - USE_DOCKER=yes
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+    ports:
+      - "8082:8082"
+    shm_size: "1gb"
+    volumes:
+      - .:/app:z
+    command: /start
+    networks:
+      - nirvana_local
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../compose/local/frontend/Dockerfile
+      secrets:
+        - ca_bundle
+    image: openmermaid_frontend
+    container_name: openmermaid_frontend
+    env_file:
+      - ./.env
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - ORIGIN=http://localhost:3000
+      - PUBLIC_API_ORIGIN=http://localhost:8082
+    ports:
+      - "3000:3000"
+    networks:
+      - nirvana_local
+
+  postgres:
+    image: postgres:18.4
+    container_name: openmermaid_postgres
+    env_file:
+      - ./.env
+    ports:
+      - "5433:5432"
+    volumes:
+      - local_postgres_data:/var/lib/postgresql:Z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nirvana_local

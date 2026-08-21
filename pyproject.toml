@@ -1,0 +1,36 @@
+[project]
+name = "openmermaid"
+version = "0.1.0"
+description = "Internal Nirvana Mermaid studio: Django API plus an independently deployed SvelteKit frontend."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "argon2-cffi>=23",
+    "django>=6.0,<7",
+    "django-cors-headers>=4.9",
+    "django-environ>=0.12",
+    "gunicorn>=23",
+    "psycopg[binary]>=3.2",
+    "social-auth-app-django>=6.0.1",
+    "uvicorn[standard]>=0.35",
+    "whitenoise>=6.9",
+]
+
+[dependency-groups]
+test = [
+    "pytest>=8",
+    "pytest-django>=4.11",
+]
+dev = [
+    {include-group = "test"},
+    "black>=26",
+    "django-debug-toolbar>=6",
+    "django-extensions>=4",
+    "flake8>=7",
+    "flake8-isort>=6",
+    "isort>=6",
+    "pre-commit>=4",
+]
+
+[tool.uv]
+package = false
