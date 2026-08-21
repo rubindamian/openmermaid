@@ -53,15 +53,18 @@ repos:
       - id: codespell
         exclude: |
             (?x)^(
-                ^.*\.svg$  |
-                ^uv\.lock$
+                .*\.svg$|
+                .*\.lock$|
+                frontend/package-lock\.json$
             )$
+        args: ["--ignore-words-list", "thirdparty"]
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.1.0
     hooks:
       - id: prettier
         files: ^frontend/
+        exclude: package-lock\.json$
         additional_dependencies:
           - prettier@3.6.2
           - prettier-plugin-svelte@3.4.0
