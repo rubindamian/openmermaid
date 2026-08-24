@@ -1,5 +1,9 @@
 import mermaid from "mermaid";
 
+// Must match MERMAID_THEME in config/settings/base.py, or the preview shows a
+// different palette than the PNG published from the same source.
+export const PREVIEW_THEME = "default";
+
 let started = false;
 
 export async function renderMermaidPreview(
@@ -12,7 +16,7 @@ export async function renderMermaidPreview(
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: "strict",
-      theme: "neutral",
+      theme: PREVIEW_THEME,
     });
     started = true;
   }

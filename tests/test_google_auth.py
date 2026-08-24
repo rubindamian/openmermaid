@@ -108,6 +108,11 @@ def test_cancelled_oauth_creates_no_user() -> None:
 def test_login_post_redirects_to_google(settings) -> None:
     settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "test-client-id"
     settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "test-secret"
+    # Pinned here so the assertion does not depend on the developer's .env.
+    settings.SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
+        "hd": "example.com",
+        "prompt": "select_account",
+    }
     client = Client(enforce_csrf_checks=True)
     csrf = client.get("/auth/csrf/").json()["csrfToken"]
     response = client.post(

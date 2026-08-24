@@ -37,11 +37,17 @@ services:
       - USE_DOCKER=yes
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
+      # The OAuth token exchange is a server-side HTTPS call, so the corp CA has
+      # to be trusted at runtime too - build secrets do not survive into the image.
+      - REQUESTS_CA_BUNDLE=/etc/ssl/certs/corp-ca-bundle.pem
+      - SSL_CERT_FILE=/etc/ssl/certs/corp-ca-bundle.pem
+      - NODE_EXTRA_CA_CERTS=/etc/ssl/certs/corp-ca-bundle.pem
     ports:
       - "8082:8082"
     shm_size: "1gb"
     volumes:
       - .:/app:z
+      - ${CORP_CA_BUNDLE:-/etc/corp-ca/ca-bundle.pem}:/etc/ssl/certs/corp-ca-bundle.pem:ro
     command: /start
     networks:
       - nirvana_local

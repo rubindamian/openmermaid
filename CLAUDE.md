@@ -62,7 +62,7 @@ Django admin: `http://127.0.0.1:8082/admin/`
 - `studio/` — auth, diagram API, mermaid-cli publish, public PNG
 - `compose/local/django/` — independently runnable backend image (includes Chromium for mermaid-cli)
 - `compose/local/frontend/` — independently runnable SvelteKit image
-- `frontend/` — SvelteKit 2 + Flowbite Svelte studio UI
+- `frontend/` — SvelteKit 2 studio UI: sidebar shell, dashboard with grid/list views, split editor. Styled with Tailwind 4 on native elements; no component library
 
 **Request flow (target):** browser → frontend origin for UI, browser → API origin for session cookies and JSON. Public PNG and Google OAuth callback are served by the API without the frontend process.
 

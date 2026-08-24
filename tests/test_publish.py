@@ -189,6 +189,22 @@ def test_browser_launch_failure_is_renderer_unavailable(settings) -> None:
             render_with_mmdc("flowchart TD\n  A-->B")
 
 
+def test_mmdc_renders_with_the_configured_theme(settings) -> None:
+    """The PNG must use the same palette the browser preview renders."""
+    settings.MERMAID_PUPPETEER_CONFIG = ""
+    settings.MERMAID_THEME = "default"
+
+    def fake_run(cmd, **_kwargs):
+        Path(cmd[cmd.index("-o") + 1]).write_bytes(_png("themed"))
+        return CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    with patch("studio.publish.subprocess.run", side_effect=fake_run) as run:
+        assert render_with_mmdc("flowchart TD\n  A-->B") == _png("themed")
+
+    cmd = run.call_args.args[0]
+    assert cmd[cmd.index("-t") + 1] == "default"
+
+
 def test_parse_failure_is_invalid_mermaid(settings) -> None:
     settings.MERMAID_PUPPETEER_CONFIG = ""
     completed = CompletedProcess(

@@ -4,6 +4,8 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import Client
 
+from config.settings.base import loopback_origins
+
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -27,11 +29,30 @@ def test_postgres_engine_is_configured() -> None:
 
 def test_frontend_origin_drives_cors_and_csrf() -> None:
     assert settings.FRONTEND_ORIGIN
-    assert settings.CORS_ALLOWED_ORIGINS == [settings.FRONTEND_ORIGIN]
+    assert settings.FRONTEND_ORIGIN in settings.CORS_ALLOWED_ORIGINS
     assert settings.FRONTEND_ORIGIN in settings.CSRF_TRUSTED_ORIGINS
     assert settings.SESSION_COOKIE_SAMESITE == "Lax"
     assert settings.SESSION_COOKIE_HTTPONLY is True
     assert settings.SESSION_COOKIE_SECURE is False
+
+
+def test_both_loopback_spellings_are_allowed_origins() -> None:
+    # A browser on 127.0.0.1 must not get a CORS-blocked response that the UI
+    # can only report as an unreachable API.
+    assert loopback_origins("http://localhost:3000") == [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    assert loopback_origins("http://127.0.0.1:3000") == [
+        "http://127.0.0.1:3000",
+        "http://localhost:3000",
+    ]
+    assert loopback_origins("https://studio.example.com") == [
+        "https://studio.example.com"
+    ]
+    assert "http://127.0.0.1:3000" in settings.CORS_ALLOWED_ORIGINS
+    assert "http://127.0.0.1:3000" in settings.CSRF_TRUSTED_ORIGINS
+    assert "127.0.0.1:3000" in settings.SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS
 
 
 def test_compose_starts_frontend_backend_and_postgres_independently() -> None:

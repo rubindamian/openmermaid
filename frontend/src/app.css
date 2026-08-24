@@ -1,4 +1,7 @@
 @import "tailwindcss";
 
-@source "../node_modules/flowbite-svelte/dist";
-@source "../node_modules/flowbite-svelte-icons/dist";
+/* The UI is light-only. Without this, native controls and scrollbars pick up
+   dark styling from the OS setting and stop matching the app's white surfaces. */
+html {
+  color-scheme: light;
+}

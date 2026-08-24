@@ -142,9 +142,26 @@ X_FRAME_OPTIONS = "DENY"
 # Split-origin browser studio (KTD3). Session cookie lives on the API host.
 FRONTEND_ORIGIN = env("FRONTEND_ORIGIN", default="http://localhost:3000")
 PUBLIC_API_ORIGIN = env("PUBLIC_API_ORIGIN", default="http://localhost:8082")
-CORS_ALLOWED_ORIGINS = [FRONTEND_ORIGIN]
+
+LOOPBACK_ALIASES = {"localhost": "127.0.0.1", "127.0.0.1": "localhost"}
+
+
+def loopback_origins(origin: str) -> list[str]:
+    """Return `origin` plus its other loopback spelling.
+
+    A developer who types 127.0.0.1 instead of localhost would otherwise get a
+    CORS-blocked response the browser reports as an unreachable API.
+    """
+    for host, alias in LOOPBACK_ALIASES.items():
+        marker = f"://{host}"
+        if marker in origin:
+            return [origin, origin.replace(marker, f"://{alias}", 1)]
+    return [origin]
+
+
+CORS_ALLOWED_ORIGINS = loopback_origins(FRONTEND_ORIGIN)
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [FRONTEND_ORIGIN]
+CSRF_TRUSTED_ORIGINS = loopback_origins(FRONTEND_ORIGIN)
 
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
 GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", default="")
@@ -162,7 +179,10 @@ SOCIAL_AUTH_NEW_USER_REDIRECT_URL = f"{FRONTEND_ORIGIN}/"
 SOCIAL_AUTH_LOGIN_ERROR_URL = f"{FRONTEND_ORIGIN}/?auth_error=1"
 SOCIAL_AUTH_RAISE_EXCEPTIONS = False
 SOCIAL_AUTH_SANITIZE_REDIRECTS = True
-SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = [FRONTEND_ORIGIN.split("://", 1)[-1].split("/")[0]]
+SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = [
+    origin.split("://", 1)[-1].split("/")[0]
+    for origin in loopback_origins(FRONTEND_ORIGIN)
+]
 SOCIAL_AUTH_JSONFIELD_ENABLED = True
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = GOOGLE_CLIENT_ID
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = GOOGLE_CLIENT_SECRET
@@ -186,6 +206,9 @@ SOCIAL_AUTH_PIPELINE = (
 
 # mermaid-cli (mmdc) runs inside the backend image. Tests inject MERMAID_RENDERER.
 MERMAID_CLI = env("MERMAID_CLI", default="mmdc")
+# Passed to mmdc as -t so the published PNG keeps the same palette as the browser
+# preview. Change it here and in frontend/src/lib/mermaidPreview.ts together.
+MERMAID_THEME = env("MERMAID_THEME", default="default")
 MERMAID_PUPPETEER_CONFIG = env(
     "MERMAID_PUPPETEER_CONFIG",
     default=str(ROOT_DIR / "compose/local/django/puppeteer-config.json"),

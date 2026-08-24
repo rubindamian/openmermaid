@@ -31,6 +31,7 @@ def render_png(source: str) -> bytes:
 def render_with_mmdc(source: str) -> bytes:
     cli = getattr(settings, "MERMAID_CLI", "mmdc")
     config = getattr(settings, "MERMAID_PUPPETEER_CONFIG", "")
+    theme = getattr(settings, "MERMAID_THEME", "default")
     timeout = int(getattr(settings, "MERMAID_RENDER_TIMEOUT", 30))
     env = os.environ.copy()
     skip = getattr(settings, "PUPPETEER_SKIP_DOWNLOAD", None)
@@ -45,6 +46,8 @@ def render_with_mmdc(source: str) -> bytes:
         output_path = Path(tmp) / "diagram.png"
         input_path.write_text(source, encoding="utf-8")
         cmd = [cli, "-i", str(input_path), "-o", str(output_path), "-b", "transparent"]
+        if theme:
+            cmd.extend(["-t", str(theme)])
         if config:
             cmd.extend(["-p", str(config)])
         try:

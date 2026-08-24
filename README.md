@@ -16,9 +16,11 @@ cd frontend && npm install && cd ..
 
 Use Node 22+ (`nvm use` in `frontend/`). Fill `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env` before trying a real Google login.
 
-### Corp TLS and image builds
+### Corp TLS
 
 Cloudflare WARP re-signs outbound TLS, so `uv` and `npm` inside a build reject PyPI and npm certificates (`invalid peer certificate: UnknownIssuer`, `SELF_SIGNED_CERT_IN_CHAIN`). Compose passes the host bundle at `/etc/corp-ca/ca-bundle.pem` as the `ca_bundle` build secret — share `/etc/corp-ca` in Docker Desktop's file sharing settings. Point `CORP_CA_BUNDLE` at a different path if yours differs. Off the corporate network the secret is optional and builds work without it.
+
+The backend also needs that bundle **at runtime**: completing a Google login exchanges the authorization code over a server-side HTTPS call, and build secrets do not survive into the image. Compose therefore bind-mounts the same file to `/etc/ssl/certs/corp-ca-bundle.pem` and points `REQUESTS_CA_BUNDLE`, `SSL_CERT_FILE`, and `NODE_EXTRA_CA_CERTS` at it. Without it the callback fails with `CERTIFICATE_VERIFY_FAILED: self-signed certificate in certificate chain` and the browser lands back on `/signin` with no session.
 
 ## Run everything
 
@@ -26,10 +28,12 @@ Cloudflare WARP re-signs outbound TLS, so `uv` and `npm` inside a build reject P
 docker compose up
 ```
 
-- Studio UI: http://127.0.0.1:3000
-- API: http://127.0.0.1:8082
-- Health: http://127.0.0.1:8082/health/
+- Studio UI: http://localhost:3000
+- API: http://localhost:8082
+- Health: http://localhost:8082/health/
 - Postgres on the host: `localhost:5433`
+
+`localhost` and `127.0.0.1` are different sites to a browser, so the studio calls the API on whichever spelling you opened, and both are allowed CORS origins. Do not mix them by hand — a page on one and an API on the other drops the `SameSite=Lax` session cookie and every call returns 401.
 
 ## API only (no frontend process)
 
