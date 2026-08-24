@@ -53,6 +53,9 @@ def test_both_loopback_spellings_are_allowed_origins() -> None:
     assert "http://127.0.0.1:3000" in settings.CORS_ALLOWED_ORIGINS
     assert "http://127.0.0.1:3000" in settings.CSRF_TRUSTED_ORIGINS
     assert "127.0.0.1:3000" in settings.SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS
+    # Admin lives on the API origin; Google `next=/admin/` must be allowed back.
+    assert "localhost:8082" in settings.SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS
+    assert "127.0.0.1:8082" in settings.SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS
 
 
 def test_compose_starts_frontend_backend_and_postgres_independently() -> None:
@@ -80,3 +83,9 @@ def test_backend_dockerfile_excludes_frontend_app() -> None:
     )
     dockerignore = (ROOT / ".dockerignore").read_text()
     assert "frontend" in dockerignore
+
+
+def test_local_start_bootstraps_the_compose_superuser() -> None:
+    start = (ROOT / "compose/local/django/start").read_text()
+    assert "ensure_superuser" in start
+    assert "secretpassword!" in start

@@ -126,3 +126,17 @@ def test_login_post_redirects_to_google(settings) -> None:
     params = parse_qs(parsed.query)
     assert params["hd"] == ["example.com"]
     assert "openid" in params["scope"][0]
+
+
+def test_google_begin_keeps_admin_as_next(settings) -> None:
+    settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "test-client-id"
+    settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "test-secret"
+    client = Client(enforce_csrf_checks=True)
+    csrf = client.get("/auth/csrf/").json()["csrfToken"]
+    response = client.post(
+        reverse("social:begin", args=["google-oauth2"]),
+        {"next": "/admin/"},
+        HTTP_X_CSRFTOKEN=csrf,
+    )
+    assert response.status_code == 302
+    assert client.session["next"] == "/admin/"

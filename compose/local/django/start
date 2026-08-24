@@ -8,6 +8,8 @@ cd /app
 
 python manage.py migrate
 python manage.py collectstatic --noinput
+# Same local bootstrap as ehr-bridge: known admin for http://localhost:8082/admin/
+python manage.py ensure_superuser --password 'secretpassword!' || true
 
 # Local: uvicorn. Production later can swap this for gunicorn + uvicorn workers.
 exec uvicorn config.asgi:application --host 0.0.0.0 --port 8082 --reload

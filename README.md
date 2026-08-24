@@ -31,6 +31,7 @@ docker compose up
 - Studio UI: http://localhost:3000
 - API: http://localhost:8082
 - Health: http://localhost:8082/health/
+- Django admin: http://localhost:8082/admin/ (login: `admin` / `secretpassword!` after `docker compose up`)
 - Postgres on the host: `localhost:5433`
 
 `localhost` and `127.0.0.1` are different sites to a browser, so the studio calls the API on whichever spelling you opened, and both are allowed CORS origins. Do not mix them by hand — a page on one and an API on the other drops the `SameSite=Lax` session cookie and every call returns 401.
@@ -79,3 +80,5 @@ uv run pre-commit run --all-files
 ## Environment
 
 See `.env.example` for `POSTGRES_*`, `FRONTEND_ORIGIN`, `PUBLIC_API_ORIGIN`, and `GOOGLE_*`. Google login verifies the ID-token `hd` claim against `GOOGLE_WORKSPACE_DOMAINS`.
+
+Django admin (`/admin/`) accepts Google Workspace login and a local username/password. Compose creates `admin` / `secretpassword!` on startup (same as ehr-bridge). Studio Google users stay out until a superuser grants **Staff status** (and Superuser if they should manage users). Without that, admin explains they are not authorized.

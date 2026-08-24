@@ -51,7 +51,7 @@ cd frontend && npm run dev
 
 Health: `http://127.0.0.1:8082/health/`
 Studio: `http://127.0.0.1:3000/`
-Django admin: `http://127.0.0.1:8082/admin/`
+Django admin: `http://127.0.0.1:8082/admin/` (`admin` / `secretpassword!` after Compose start; Google if the account is staff)
 
 ## Architecture
 

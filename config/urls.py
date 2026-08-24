@@ -5,6 +5,10 @@ from django.urls import include, path
 from studio.auth import csrf_bootstrap
 from studio.views import health
 
+admin.site.site_header = "Open Mermaid"
+admin.site.site_title = "Open Mermaid"
+admin.site.index_title = "Administration"
+
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path("health/", health, name="health"),

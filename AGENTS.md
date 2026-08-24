@@ -64,6 +64,7 @@ openmermaid/
 - Keep views thin; put product rules in `studio/`
 - Unauthenticated health lives at `GET /health/`
 - Google org login lives in `studio/auth.py` (`social-auth-app-django`). Do not copy ehr-bridge JWT consumer auth
+- Django admin (`/admin/`) offers Google plus username/password. Local Compose runs `ensure_superuser` (`admin` / `secretpassword!`). Google users need `is_staff`; otherwise the login page explains they are not authorized
 - Diagram JSON API is session-authenticated; public PNG is unauthenticated `GET /p/{token}.png`
 
 ## Testing

@@ -159,6 +159,19 @@ def loopback_origins(origin: str) -> list[str]:
     return [origin]
 
 
+def social_auth_redirect_hosts(*origins: str) -> list[str]:
+    """Host[:port] values python-social-auth will honor in `next` redirects."""
+    hosts: list[str] = []
+    seen: set[str] = set()
+    for origin in origins:
+        for item in loopback_origins(origin):
+            host = item.split("://", 1)[-1].split("/", 1)[0]
+            if host and host not in seen:
+                seen.add(host)
+                hosts.append(host)
+    return hosts
+
+
 CORS_ALLOWED_ORIGINS = loopback_origins(FRONTEND_ORIGIN)
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = loopback_origins(FRONTEND_ORIGIN)
@@ -179,10 +192,11 @@ SOCIAL_AUTH_NEW_USER_REDIRECT_URL = f"{FRONTEND_ORIGIN}/"
 SOCIAL_AUTH_LOGIN_ERROR_URL = f"{FRONTEND_ORIGIN}/?auth_error=1"
 SOCIAL_AUTH_RAISE_EXCEPTIONS = False
 SOCIAL_AUTH_SANITIZE_REDIRECTS = True
-SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = [
-    origin.split("://", 1)[-1].split("/")[0]
-    for origin in loopback_origins(FRONTEND_ORIGIN)
-]
+# Studio UI plus Django admin (same API origin as the OAuth callback).
+SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = social_auth_redirect_hosts(
+    FRONTEND_ORIGIN,
+    PUBLIC_API_ORIGIN,
+)
 SOCIAL_AUTH_JSONFIELD_ENABLED = True
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = GOOGLE_CLIENT_ID
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = GOOGLE_CLIENT_SECRET
